@@ -63,19 +63,23 @@ jobs:
           cd ${GITHUB_WORKSPACE}
           .cicd/scripts/post_test_results.sh $UFS_PLATFORM RT
       
+      # Fork PRs do not get an OIDC token or repository secrets.
       - name: Configure AWS Credentials
+        id: aws-credentials
+        if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::211527314271:role/github-actions-s3 
           aws-region: us-east-1
 
       - name: Upload Files to S3 via AWS CLI
+        if: steps.aws-credentials.outcome == 'success'
         run: |
-          aws s3 cp ${GITHUB_WORKSPACE}/tests/logs/ s3://noaa-epic-prod-jenkins-artifacts/kb-test/ --recursive --exclude "*" --include "*.tgz" 
+          aws s3 cp "${GITHUB_WORKSPACE}/wm_test_logs-${{ matrix.runner }}-oneapi.tgz" s3://noaa-epic-prod-jenkins-artifacts/kb-test/
 
           
       - name: Send Slack Notification
-        if: always() 
+        if: always() && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
