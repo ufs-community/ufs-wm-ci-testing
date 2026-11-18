@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Configure AWS Credentials
         if: always()
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::211527314271:role/github-actions-s3 
           aws-region: us-east-1
