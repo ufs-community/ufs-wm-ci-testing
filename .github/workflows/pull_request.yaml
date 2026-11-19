@@ -65,7 +65,8 @@ jobs:
           .cicd/scripts/post_test_results.sh $UFS_PLATFORM RT
 
       - name: Trigger downstream post-build for ${{ matrix.runner }}
-        if: always()
+        # Fork PR tokens cannot write repository dispatch events.
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
